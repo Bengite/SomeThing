@@ -1,57 +1,55 @@
-// == Egern Script ==
-// @name         BWG 流量查詢 (剩餘 + 重置日期)
-// @description  透過搬瓦工官方 API 獲取 VPS 已用/剩餘流量，並估算下次重置日期
-// @type         generic
-// @author       Grok
-// @version      1.0
-// @icon         https://www.bandwagonhost.com/favicon.ico
-// ==/Egern Script ==
+/**
+ * 搬瓦工 (BWG) 多台 VPS 流量彙整腳本 for Egern
+ */
+
+// --- 配置區域：在此添加你的 VPS 信息 ---
+const vpsList = [
+    { name: "香港 CN2 GIA", veid: "123456", apiKey: "PRIVATE_KEY_1" },
+    { name: "洛杉磯 DC9", veid: "789012", apiKey: "PRIVATE_KEY_2" },
+    { name: "日本軟銀", veid: "345678", apiKey: "PRIVATE_KEY_3" }
+];
+// ---------------------------------------
+
+async function fetchBWG(vps) {
+    const url = `https://api.64clouds.com/v1/getServiceInfo?veid=${vps.veid}&api_key=${vps.apiKey}`;
+    
+    return new Promise((resolve) => {
+        $httpClient.get(url, (error, response, data) => {
+            if (error) {
+                resolve(`❌ ${vps.name}: 請求失敗`);
+                return;
+            }
+            
+            try {
+                const obj = JSON.parse(data);
+                if (obj.error !== 0) {
+                    resolve(`❌ ${vps.name}: API 錯誤(${obj.error})`);
+                    return;
+                }
+
+                // 計算數據
+                const totalGB = (obj.plan_monthly_data / 1024 / 1024 / 1024).toFixed(1);
+                const usedGB = (obj.data_counter / 1024 / 1024 / 1024).toFixed(1);
+                const remainGB = (totalGB - usedGB).toFixed(1);
+                const percent = ((usedGB / totalGB) * 100).toFixed(0);
+                const resetDate = new Date(obj.data_next_reset * 1000).toLocaleDateString("zh-TW", {month:'numeric', day:'numeric'});
+
+                // 格式化單行輸出
+                resolve(`📊 ${vps.name}\n   剩餘: ${remainGB}G | 已用: ${percent}% | 重置: ${resetDate}`);
+            } catch (e) {
+                resolve(`❌ ${vps.name}: 解析解析失敗`);
+            }
+        });
+    });
+}
 
 async function main() {
-  // === 請替換成你自己的資訊 ===
-  const veid = "你的VEID";          // 例如 "1234567"
-  const api_key = "你的API_KEY";    // 例如 "private_xxxxxxxxxxxxxxxxxxxxxxxx"
-  const resetDay = 15;               // 你的流量重置日（購買當天的「日」，1~31）
+    const results = await Promise.all(vpsList.map(vps => fetchBWG(vps)));
+    const finalContent = results.join("\n" + "─".repeat(20) + "\n");
 
-  const url = `https://api.64clouds.com/v1/getServiceInfo?veid=${veid}&api_key=${api_key}`;
-
-  $httpClient.get(URL, function(error, response, data) {
-    if (error) {
-        console.log("網絡請求失敗: " + error);
-        $notification.post("BWG 查詢失敗", "請檢查網絡或 API 配置", error);
-        $done();
-        return;
-    }
-
-    const obj = JSON.parse(data);
-    
-    if (obj.error !== 0) {
-        $notification.post("BWG API 錯誤", "錯誤代碼: " + obj.error, obj.message);
-        $done();
-        return;
-    }
-
-    // 數據單位轉換 (API 返回的是 Byte)
-    const totalGB = (obj.plan_monthly_data / 1024 / 1024 / 1024).toFixed(2);
-    const usedGB = (obj.data_counter / 1024 / 1024 / 1024).toFixed(2);
-    const remainingGB = (totalGB - usedGB).toFixed(2);
-    const usagePercent = ((usedGB / totalGB) * 100).toFixed(2);
-    
-    // 獲取重置日期 (API 返回的是 Unix 時間戳)
-    const resetDate = new Date(obj.data_next_reset * 1000).toLocaleDateString("zh-CN");
-
-    // 拼湊通知內容
-    const title = `VPS 流量報表 (${obj.hostname})`;
-    const subtitle = `剩餘: ${remainingGB} GB | 已用: ${usagePercent}%`;
-    const content = `總計: ${totalGB} GB\n已用: ${usedGB} GB\n重置日期: ${resetDate}`;
-
-    // 發送通知到系統
-    $notification.post(title, subtitle, content);
-    
-    console.log(`${title}\n${subtitle}\n${content}`);
+    $notification.post("BWG 雲服務器監控", `共計 ${vpsList.length} 台設備`, finalContent);
+    console.log(finalContent);
     $done();
-});
 }
 
 main();
-
