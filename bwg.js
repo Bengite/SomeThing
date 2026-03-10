@@ -15,59 +15,43 @@ async function main() {
 
   const url = `https://api.64clouds.com/v1/getServiceInfo?veid=${veid}&api_key=${api_key}`;
 
-  try {
-    const response = await fetch(url, {
-      method: 'GET',
-      mode: 'no-cors',          // 嘗試 no-cors 模式，繞過部分 CORS 檢查（但 response 會 opaque）
-      cache: 'no-cache',
-      redirect: 'follow'
-    });
-
-    // 如果用 no-cors，response.ok 會是 false，但我們可以試讀 body
-    if (!response.ok && response.type !== 'opaque') {
-      throw new Error(`HTTP 錯誤: ${response.status} - ${response.statusText}`);
+  $httpClient.get(URL, function(error, response, data) {
+    if (error) {
+        console.log("網絡請求失敗: " + error);
+        $notification.post("BWG 查詢失敗", "請檢查網絡或 API 配置", error);
+        $done();
+        return;
     }
 
-    let data;
-    try {
-      data = await response.json();
-    } catch (jsonErr) {
-      throw new Error("無法解析 JSON: " + jsonErr.message + " (可能是 no-cors 導致 body 不可讀)");
+    const obj = JSON.parse(data);
+    
+    if (obj.error !== 0) {
+        $notification.post("BWG API 錯誤", "錯誤代碼: " + obj.error, obj.message);
+        $done();
+        return;
     }
 
-    if (data.error) {
-      $done({ title: "BWG API 錯誤", content: data.error });
-      return;
-    }
-
-    const usedBytes = data.data_counter || 0;
-    const totalBytes = data.plan_monthly_data || 0;
-    const usedGB = (usedBytes / (1024 ** 3)).toFixed(2);
-    const totalGB = (totalBytes / (1024 ** 3)).toFixed(2);
+    // 數據單位轉換 (API 返回的是 Byte)
+    const totalGB = (obj.plan_monthly_data / 1024 / 1024 / 1024).toFixed(2);
+    const usedGB = (obj.data_counter / 1024 / 1024 / 1024).toFixed(2);
     const remainingGB = (totalGB - usedGB).toFixed(2);
+    const usagePercent = ((usedGB / totalGB) * 100).toFixed(2);
+    
+    // 獲取重置日期 (API 返回的是 Unix 時間戳)
+    const resetDate = new Date(obj.data_next_reset * 1000).toLocaleDateString("zh-CN");
 
-    const now = new Date();
-    let resetDate = new Date(now.getFullYear(), now.getMonth(), resetDay);
-    if (now > resetDate) {
-      resetDate.setMonth(resetDate.getMonth() + 1);
-    }
-    const resetStr = resetDate.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' });
+    // 拼湊通知內容
+    const title = `VPS 流量報表 (${obj.hostname})`;
+    const subtitle = `剩餘: ${remainingGB} GB | 已用: ${usagePercent}%`;
+    const content = `總計: ${totalGB} GB\n已用: ${usedGB} GB\n重置日期: ${resetDate}`;
 
-    const title = "搬瓦工 VPS 流量狀態";
-    const content = `總配額：${totalGB} GB\n已用：${usedGB} GB\n剩餘：${remainingGB} GB\n下次重置：${resetStr} (購買日 ${resetDay} 號)`;
-
-    $notification.post(title, "", content);
-    $done({ title, content });
-
-  } catch (err) {
-    let msg = err.message || "未知錯誤";
-    if (msg.includes("Load failed") || msg.includes("TypeError")) {
-      msg = "Load failed - 常見原因：1. 代理節點失效（請設 DIRECT）；2. CORS 限制；3. MITM 干擾；4. 網路/DNS 問題。";
-    }
-    console.log("錯誤詳情: " + msg + "\nURL: " + url);
-    $notification.post("BWG 查詢失敗", "", msg + "\n請檢查規則設 DIRECT");
-    $done({ title: "錯誤", content: msg });
-  }
+    // 發送通知到系統
+    $notification.post(title, subtitle, content);
+    
+    console.log(`${title}\n${subtitle}\n${content}`);
+    $done();
+});
 }
 
 main();
+
