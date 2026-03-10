@@ -12,32 +12,26 @@ const vpsList = [
 
 async function fetchBWG(vps) {
     const url = `https://api.64clouds.com/v1/getServiceInfo?veid=${vps.veid}&api_key=${vps.apiKey}`;
-    
     return new Promise((resolve) => {
         $httpClient.get(url, (error, response, data) => {
-            if (error) {
-                resolve(`❌ ${vps.name}: 請求失敗`);
-                return;
-            }
-            
+            if (error) return resolve(`❌ ${vps.name}: 連接失敗`);
             try {
                 const obj = JSON.parse(data);
-                if (obj.error !== 0) {
-                    resolve(`❌ ${vps.name}: API 錯誤(${obj.error})`);
-                    return;
-                }
+                if (obj.error !== 0) return resolve(`❌ ${vps.name}: API 密鑰錯誤`);
 
-                // 計算數據
-                const totalGB = (obj.plan_monthly_data / 1024 / 1024 / 1024).toFixed(1);
-                const usedGB = (obj.data_counter / 1024 / 1024 / 1024).toFixed(1);
-                const remainGB = (totalGB - usedGB).toFixed(1);
-                const percent = ((usedGB / totalGB) * 100).toFixed(0);
-                const resetDate = new Date(obj.data_next_reset * 1000).toLocaleDateString("zh-TW", {month:'numeric', day:'numeric'});
+                const total = (obj.plan_monthly_data / 1073741824).toFixed(1);
+                const used = (obj.data_counter / 1073741824).toFixed(1);
+                const remain = (total - used).toFixed(1);
+                const percent = Math.min(((used / total) * 100), 100).toFixed(0);
+                const resetDate = new Date(obj.data_next_reset * 1000).toLocaleDateString("zh-TW", {month:'2-digit', day:'2-digit'});
 
-                // 格式化單行輸出
-                resolve(`📊 ${vps.name}\n   剩餘: ${remainGB}G | 已用: ${percent}% | 重置: ${resetDate}`);
+                // 視覺組件
+                const bar = "■".repeat(Math.floor(percent/10)) + "□".repeat(10 - Math.floor(percent/10));
+                const alert = percent > 90 ? "🔴" : (percent > 75 ? "🟡" : "🟢");
+
+                resolve(`${alert} **${vps.name}**\n   ${bar} ${percent}%\n   流量: ${remain}G / ${total}G  |  📅 ${resetDate}`);
             } catch (e) {
-                resolve(`❌ ${vps.name}: 解析解析失敗`);
+                resolve(`❌ ${vps.name}: 解析失敗`);
             }
         });
     });
@@ -45,11 +39,12 @@ async function fetchBWG(vps) {
 
 async function main() {
     const results = await Promise.all(vpsList.map(vps => fetchBWG(vps)));
-    const finalContent = results.join("\n" + "─".repeat(20) + "\n");
+    // 使用雙換行分割，增加呼吸感
+    const finalContent = results.join("\n\n");
 
-    $notification.post("BWG 雲服務器監控", `共計 ${vpsList.length} 台設備`, finalContent);
-    console.log(finalContent);
+    $notification.post("🚀 搬瓦工流量監控回報", "", finalContent);
     $done();
 }
 
 main();
+
