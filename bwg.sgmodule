@@ -4,7 +4,7 @@
 #!arguments=ids:name#id#key
 
 [Panel]
-BWG_Monitor = script-name=BWG_Stats, update-interval=3600
+BWG_Monitor = script-name=BWG_Stats, update-interval=86400
 
 [Script]
 # 將這裡的 argument 替換為你的真實數據   香港#123456#KEY_AAA,美國#789012#KEY_BBB
