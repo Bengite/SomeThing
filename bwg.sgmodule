@@ -8,4 +8,4 @@ BWG_Monitor = script-name=BWG_Stats, update-interval=3600
 
 [Script]
 # 將這裡的 argument 替換為你的真實數據   香港#123456#KEY_AAA,美國#789012#KEY_BBB
-BWG_Stats = type=generic, script-path=https://raw.githubusercontent.com/Bengite/SomeThing/refs/heads/main/bwgarea.js?v=1, argument={{{ids}}}
+BWG_Stats = type=generic, script-path=https://raw.githubusercontent.com/Bengite/SomeThing/refs/heads/main/bwgarea.js?v=1.1, argument={{{ids}}}
