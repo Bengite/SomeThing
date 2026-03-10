@@ -39,9 +39,9 @@ async function fetchBWG(vps) {
                 // 第一行：名稱
                 const line1 = `${statusEmoji} **${vps.name.toUpperCase()}**`;
                 // 第二行：流量進度條
-                const line2 = `   流量: ${bar} ${percent}%`;
+                const line2 = `    流量: ${bar} ${percent}%`;
                 // 第三行：剩餘詳情與日期
-                const line3 = `   剩餘: ${remain}G / ${total}G  |  ⏳ ${resetDate} 重置`;
+                const line3 = `    剩餘: ${remain}G / ${total}G  |  ⏳ ${resetDate} 重置`;
 
                 resolve(`${line1}\n${line2}\n${line3}`);
             } catch (e) {
