@@ -1,7 +1,6 @@
 #!name=BWG Traffic Panel
 #!desc=搬瓦工多台 VPS 流量監控面板。請在參數中填寫: 名稱#VEID#APIKEY，多台用逗號隔開。
 #!category=Monitor
-
 #!arguments=ids:name#id#key
 
 [Panel]
