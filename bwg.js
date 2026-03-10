@@ -10,41 +10,65 @@ const vpsList = [
 ];
 // ---------------------------------------
 
-async function fetchBWG(vps) {
+// 核心請求函數
+function fetchBWG(vps) {
     const url = `https://api.64clouds.com/v1/getServiceInfo?veid=${vps.veid}&api_key=${vps.apiKey}`;
     return new Promise((resolve) => {
-        $httpClient.get(url, (error, response, data) => {
-            if (error) return resolve(`❌ ${vps.name}: 連接失敗`);
+        $httpClient.get({ url: url, timeout: 5000 }, (error, response, data) => {
+            if (error) {
+                console.log(`[${vps.name}] 請求失敗: ${error}`);
+                resolve(`❌ ${vps.name}: 連接超時`);
+                return;
+            }
             try {
                 const obj = JSON.parse(data);
-                if (obj.error !== 0) return resolve(`❌ ${vps.name}: API 密鑰錯誤`);
+                if (obj.error !== 0) {
+                    resolve(`❌ ${vps.name}: API Key 錯誤`);
+                    return;
+                }
 
+                // 計算數據 (使用 1024^3)
                 const total = (obj.plan_monthly_data / 1073741824).toFixed(1);
                 const used = (obj.data_counter / 1073741824).toFixed(1);
                 const remain = (total - used).toFixed(1);
                 const percent = Math.min(((used / total) * 100), 100).toFixed(0);
-                const resetDate = new Date(obj.data_next_reset * 1000).toLocaleDateString("zh-TW", {month:'2-digit', day:'2-digit'});
+                
+                // 處理日期
+                const d = new Date(obj.data_next_reset * 1000);
+                const resetDate = `${d.getMonth() + 1}/${d.getDate()}`;
 
-                // 視覺組件
-                const bar = "■".repeat(Math.floor(percent/10)) + "□".repeat(10 - Math.floor(percent/10));
-                const alert = percent > 90 ? "🔴" : (percent > 75 ? "🟡" : "🟢");
+                // 構建美化樣式
+                const barNum = Math.floor(percent / 10);
+                const bar = "■".repeat(barNum) + "□".repeat(10 - barNum);
+                const alert = percent > 90 ? "🔴" : (percent > 70 ? "🟡" : "🟢");
 
-                resolve(`${alert} **${vps.name}**\n   ${bar} ${percent}%\n   流量: ${remain}G / ${total}G  |  📅 ${resetDate}`);
+                resolve(`${alert} **${vps.name}**\n   ${bar} ${percent}%\n   剩餘: ${remain}G / ${total}G | 🗓️ ${resetDate}`);
             } catch (e) {
-                resolve(`❌ ${vps.name}: 解析失敗`);
+                console.log(`[${vps.name}] 解析出錯: ${e}`);
+                resolve(`❌ ${vps.name}: 數據解析失敗`);
             }
         });
     });
 }
 
+// 主邏輯
 async function main() {
-    const results = await Promise.all(vpsList.map(vps => fetchBWG(vps)));
-    // 使用雙換行分割，增加呼吸感
-    const finalContent = results.join("\n\n");
+    console.log("BWG 腳本開始運行...");
+    try {
+        const results = await Promise.all(vpsList.map(vps => fetchBWG(vps)));
+        const finalContent = results.join("\n\n");
 
-    $notification.post("🚀 搬瓦工流量監控回報", "", finalContent);
-    $done();
+        // 同時輸出到通知和日誌
+        $notification.post("🚀 搬瓦工流量監控", "", finalContent);
+        console.log("查詢結果:\n" + finalContent);
+    } catch (err) {
+        console.log("主程序出錯: " + err);
+    } finally {
+        // 確保腳本結束，否則 Egern 可能會卡死或不顯示
+        $done();
+    }
 }
 
 main();
+
 
