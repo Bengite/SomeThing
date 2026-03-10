@@ -1,5 +1,10 @@
+#!name=BWG Traffic Panel
+#!desc=搬瓦工多台 VPS 流量監控面板。請在參數中填寫: 名稱#VEID#APIKEY，多台用逗號隔開。
+#!category=Monitor
+
 [Panel]
-BWG_Monitor = script-name=BWG_Script, update-interval=3600
+BWG_Monitor = script-name=BWG_Stats, update-interval=3600
 
 [Script]
-BWG_Script = type=generic, script-path=bwg.js
+# 將這裡的 argument 替換為你的真實數據
+BWG_Stats = type=generic, script-path=https://你的遠程鏈接/bwg.js, argument=香港#123456#KEY_AAA,美國#789012#KEY_BBB
