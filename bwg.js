@@ -16,12 +16,16 @@ async function main() {
   const url = `https://api.64clouds.com/v1/getServiceInfo?veid=${veid}&api_key=${api_key}`;
 
   try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP 錯誤: ${response.status}`);
+    const res = await $http.get({
+      url: url,
+      headers: { "User-Agent": "Egern Script" }  // 可選，加個 UA 偽裝
+    });
+  
+    if (res.statusCode !== 200) {
+      throw new Error(`HTTP ${res.statusCode}`);
     }
-
-    const data = await response.json();
+  
+    const data = JSON.parse(res.body);
 
     if (data.error) {
       console.log("API 錯誤：" + data.error);
@@ -68,5 +72,6 @@ async function main() {
     $done({ title: "BWG API 錯誤", content: err.message });
   }
 }
+
 
 main();
