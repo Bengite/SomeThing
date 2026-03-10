@@ -67,7 +67,7 @@ async function main() {
         $done({
             title: "BandwagonHost 實時狀態",
             content: panelBody,
-            icon: "externaldrive.fill",
+            icon: "network",
             "icon-color": "#34C759" // 綠色圖標
         });
     } catch (err) {
