@@ -2,4 +2,4 @@
 BWG_Monitor = script-name=BWG_Script, update-interval=3600
 
 [Script]
-BWG_Script = type=generic, script-path=你的腳本路徑.js
+BWG_Script = type=generic, script-path=bwg.js
