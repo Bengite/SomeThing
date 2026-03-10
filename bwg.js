@@ -16,62 +16,58 @@ async function main() {
   const url = `https://api.64clouds.com/v1/getServiceInfo?veid=${veid}&api_key=${api_key}`;
 
   try {
-    const res = await $http.get({
-      url: url,
-      headers: { "User-Agent": "Egern Script" }  // 可選，加個 UA 偽裝
+    const response = await fetch(url, {
+      method: 'GET',
+      mode: 'no-cors',          // 嘗試 no-cors 模式，繞過部分 CORS 檢查（但 response 會 opaque）
+      cache: 'no-cache',
+      redirect: 'follow'
     });
-  
-    if (res.statusCode !== 200) {
-      throw new Error(`HTTP ${res.statusCode}`);
+
+    // 如果用 no-cors，response.ok 會是 false，但我們可以試讀 body
+    if (!response.ok && response.type !== 'opaque') {
+      throw new Error(`HTTP 錯誤: ${response.status} - ${response.statusText}`);
     }
-  
-    const data = JSON.parse(res.body);
+
+    let data;
+    try {
+      data = await response.json();
+    } catch (jsonErr) {
+      throw new Error("無法解析 JSON: " + jsonErr.message + " (可能是 no-cors 導致 body 不可讀)");
+    }
 
     if (data.error) {
-      console.log("API 錯誤：" + data.error);
-      $done({ title: "BWG 流量查詢失敗", content: data.error });
+      $done({ title: "BWG API 錯誤", content: data.error });
       return;
     }
 
-    // 流量單位：bytes → GB (保留2位小數)
     const usedBytes = data.data_counter || 0;
     const totalBytes = data.plan_monthly_data || 0;
     const usedGB = (usedBytes / (1024 ** 3)).toFixed(2);
     const totalGB = (totalBytes / (1024 ** 3)).toFixed(2);
     const remainingGB = (totalGB - usedGB).toFixed(2);
 
-    // 計算下次重置日期（簡單估算：當前月份 + resetDay，如果已過就下個月）
     const now = new Date();
     let resetDate = new Date(now.getFullYear(), now.getMonth(), resetDay);
-
     if (now > resetDate) {
-      // 已過本月重置日 → 下個月
       resetDate.setMonth(resetDate.getMonth() + 1);
     }
+    const resetStr = resetDate.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' });
 
-    const resetStr = resetDate.toLocaleDateString('zh-TW', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-
-    // 輸出到 Egern 通知或面板（視你怎麼用）
     const title = "搬瓦工 VPS 流量狀態";
-    const content =
-      `總配額：${totalGB} GB\n` +
-      `已用：${usedGB} GB\n` +
-      `剩餘：${remainingGB} GB\n` +
-      `下次重置日期：${resetStr} (購買日 ${resetDay} 號)`;
+    const content = `總配額：${totalGB} GB\n已用：${usedGB} GB\n剩餘：${remainingGB} GB\n下次重置：${resetStr} (購買日 ${resetDay} 號)`;
 
-    console.log(content);
-    $notification.post(title, "", content);  // 彈通知（如果 Egern 支援）
-    // 或用 $done 輸出到面板：$done({title: title, content: content});
+    $notification.post(title, "", content);
+    $done({ title, content });
 
   } catch (err) {
-    console.log("查詢失敗：" + err);
-    $done({ title: "BWG API 錯誤", content: err.message });
+    let msg = err.message || "未知錯誤";
+    if (msg.includes("Load failed") || msg.includes("TypeError")) {
+      msg = "Load failed - 常見原因：1. 代理節點失效（請設 DIRECT）；2. CORS 限制；3. MITM 干擾；4. 網路/DNS 問題。";
+    }
+    console.log("錯誤詳情: " + msg + "\nURL: " + url);
+    $notification.post("BWG 查詢失敗", "", msg + "\n請檢查規則設 DIRECT");
+    $done({ title: "錯誤", content: msg });
   }
 }
-
 
 main();
