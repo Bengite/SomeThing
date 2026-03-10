@@ -2,6 +2,8 @@
 #!desc=搬瓦工多台 VPS 流量監控面板。請在參數中填寫: 名稱#VEID#APIKEY，多台用逗號隔開。
 #!category=Monitor
 
+#!arguments=Proxy:DIRECT,MarkIP:false
+
 [Panel]
 BWG_Monitor = script-name=BWG_Stats, update-interval=3600
 
