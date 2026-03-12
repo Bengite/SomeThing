@@ -61,7 +61,7 @@ async function main() {
         const results = await Promise.all(vpsList.map(vps => fetchBWG(vps)));
         
         // 使用分隔線增加美感
-        const separator = "\n" + "─".repeat(20) + "\n";
+        const separator = "\n" + "─".repeat(23) + "\n";
         const panelBody = results.join(separator);
 
         $done({
