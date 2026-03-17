@@ -268,7 +268,7 @@ function buildCard(result, total) {
           {
             type: "text",
             text: name,
-            font: { size: "footnote", weight: "semibold" },
+            font: { size: "subheadline", weight: "semibold" },
             textColor: "#FFFFFFDD",
             maxLines: 1,
             minScale: 0.75,
@@ -285,6 +285,7 @@ function buildCard(result, total) {
                 },
               ]
             : []),
+          ...(location && expireText ? [{ type: "spacer" }] : []),
           ...(expireText
             ? [
                 {
