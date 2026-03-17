@@ -245,7 +245,7 @@ function buildCard(result, total) {
     type: "stack",
     direction: "column",
     gap: 0,
-    padding: isSingle ? [14, 13, 14, 13] : [12, 11, 12, 11],
+    padding: isSingle ? [14, 13, 14, 13] : [14, 11, 12, 11],
     backgroundColor: "#FFFFFF08",
     borderRadius: 11,
     borderWidth: 0.5,
