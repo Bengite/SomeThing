@@ -10,7 +10,10 @@ export default async function (ctx) {
     const config = (ctx.env[`VPS${i}`] || "").trim();
     if (!config) continue;
 
-    const [name, veid, apiKey] = config.split("#").map(s => s.trim());
+    const parts = config.split("#").map(s => s.trim());
+    if (parts.length < 3) continue;
+
+    const [name, veid, apiKey] = parts;
     if (!veid || !apiKey) continue;
 
     slots.push({
