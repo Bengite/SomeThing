@@ -293,7 +293,6 @@ function buildCard(result, total) {
                   text: expireText,
                   font: { size: "caption2" },
                   textColor: expireColor,
-                  flex: 1,
                 },
               ]
             : []),
