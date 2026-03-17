@@ -274,7 +274,6 @@ function buildCard(result, total) {
             minScale: 0.75,
             flex: 1,
           },
-          ...(location ? [{ type: "spacer" }] : []),
           ...(location
             ? [
                 {
@@ -283,6 +282,7 @@ function buildCard(result, total) {
                   font: { size: "caption2" },
                   textColor: "#FFFFFF77",
                   maxLines: 1,
+                  flex: 1,
                 },
               ]
             : []),
@@ -293,6 +293,7 @@ function buildCard(result, total) {
                   text: expireText,
                   font: { size: "caption2" },
                   textColor: expireColor,
+                  flex: 1,
                 },
               ]
             : []),
