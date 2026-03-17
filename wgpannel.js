@@ -139,7 +139,7 @@ export default async function (ctx) {
 // ─── 卡片构建 ─────────────────────────────────────────────────
 
 function buildCard(result, total) {
-  const { name, error, used, totalBytes, percent, expire, remainDays } = result;
+  const { name, error, errorMsg, used, totalBytes, percent, expire, remainDays } = result;
 
   const usageColor =
     error
@@ -154,9 +154,8 @@ function buildCard(result, total) {
   if (error) {
     return {
       type: "stack",
-      direction: "row",
-      alignItems: "center",
-      gap: 6,
+      direction: "column",
+      gap: 4,
       padding: [9, 11, 9, 11],
       backgroundColor: "#FFFFFF07",
       borderRadius: 11,
@@ -164,26 +163,35 @@ function buildCard(result, total) {
       borderColor: "#FF453A28",
       children: [
         {
-          type: "image",
-          src: "sf-symbol:exclamationmark.circle.fill",
-          width: 12,
-          height: 12,
-          color: "#FF453A",
+          type: "stack",
+          direction: "row",
+          alignItems: "center",
+          gap: 6,
+          children: [
+            {
+              type: "image",
+              src: "sf-symbol:exclamationmark.circle.fill",
+              width: 12,
+              height: 12,
+              color: "#FF453A",
+            },
+            {
+              type: "text",
+              text: name,
+              font: { size: "caption1", weight: "semibold" },
+              textColor: "#FFFFFFCC",
+              maxLines: 1,
+              minScale: 0.8,
+              flex: 1,
+            },
+          ],
         },
         {
           type: "text",
-          text: name,
-          font: { size: "caption1", weight: "semibold" },
-          textColor: "#FFFFFFCC",
-          maxLines: 1,
-          minScale: 0.8,
-          flex: 1,
-        },
-        {
-          type: "text",
-          text: "获取失败",
+          text: errorMsg || "获取失败",
           font: { size: "caption2" },
-          textColor: "#FF453A",
+          textColor: "#FF9F0A",
+          maxLines: 2,
         },
       ],
     };
@@ -337,22 +345,28 @@ function buildCard(result, total) {
 
 async function fetchBWGInfo(ctx, slot) {
   if (!slot.veid || !slot.apiKey) {
-    console.log(`[${slot.name}] 缺少 VEID 或 API Key`);
-    return { name: slot.name, error: true };
+    return { name: slot.name, error: true, errorMsg: "缺少 VEID 或 API Key" };
   }
 
   const url = `https://api.64clouds.com/v1/getServiceInfo?veid=${slot.veid}&api_key=${slot.apiKey}`;
-  console.log(`[${slot.name}] 请求 API: ${url}`);
 
   try {
     const resp = await ctx.http.get(url, { timeout: 9000 });
-    console.log(`[${slot.name}] 状态码: ${resp.status}`);
+
+    if (!resp.body) {
+      return { name: slot.name, error: true, errorMsg: "API 無響應" };
+    }
+
     const obj = JSON.parse(resp.body);
-    console.log(`[${slot.name}] 响应数据: ${JSON.stringify(obj)}`);
 
     if (obj.error !== 0) {
-      console.log(`[${slot.name}] API 错误代码: ${obj.error}`);
-      return { name: slot.name, error: true };
+      const errorMap = {
+        1: "API Key 錯誤",
+        2: "無效的 VEID",
+        3: "VPS 已被刪除",
+        4: "VPS 已暫停",
+      };
+      return { name: slot.name, error: true, errorMsg: errorMap[obj.error] || `API 錯誤 ${obj.error}` };
     }
 
     // 计算数据（使用 1024^3 = 1073741824）
@@ -379,8 +393,7 @@ async function fetchBWGInfo(ctx, slot) {
       remainDays: remainDays,
     };
   } catch (err) {
-    console.log(`[${slot.name}] 请求出错: ${err.message}`);
-    return { name: slot.name, error: true };
+    return { name: slot.name, error: true, errorMsg: `請求失敗: ${err.message || "未知錯誤"}` };
   }
 }
 
