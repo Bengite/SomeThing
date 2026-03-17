@@ -1,30 +1,40 @@
 // 搬瓦工 (BWG) 流量面板小组件
-// 环境变量格式：VPS1=name#veid#apikey ... VPS5=name#veid#apikey
-// 例如：VPS1=香港 CN2 GIA#123456#PRIVATE_KEY_1
+// 参数格式：名称#VEID#KEY,名称#VEID#KEY,名称#VEID#KEY
+// 例如：香港 CN2 GIA#123456#abc123,日本软银#789012#def456
 
 export default async function (ctx) {
   const MAX = 5;
   const slots = [];
 
-  // 調試：打印可用的環境變量方式
-  console.log("ctx.env:", ctx.env);
-  console.log("ctx:", Object.keys(ctx));
+  // 獲取環境變數或參數
+  let vpsList = [];
 
-  for (let i = 1; i <= MAX; i++) {
-    const config = (ctx.env[`VPS${i}`] || "").trim();
-    if (!config) continue;
-
-    const parts = config.split("#").map(s => s.trim());
-    if (parts.length < 3) continue;
-
-    const [name, veid, apiKey] = parts;
-    if (!veid || !apiKey) continue;
-
-    slots.push({
-      name: name || `VPS ${i}`,
-      veid,
-      apiKey,
+  // 方式 1: 直接讀參數（$argument）
+  if (typeof $argument !== "undefined" && $argument) {
+    vpsList = $argument.split(",").map(item => {
+      const [name, veid, apiKey] = item.split("#").map(s => s.trim());
+      return { name, veid, apiKey };
     });
+  }
+
+  // 方式 2: 讀環境變數（VPS1, VPS2...）
+  if (vpsList.length === 0 && ctx.env) {
+    for (let i = 1; i <= MAX; i++) {
+      const config = (ctx.env[`VPS${i}`] || "").trim();
+      if (!config) continue;
+      const parts = config.split("#").map(s => s.trim());
+      if (parts.length < 3) continue;
+      const [name, veid, apiKey] = parts;
+      if (veid && apiKey) {
+        vpsList.push({ name: name || `VPS ${i}`, veid, apiKey });
+      }
+    }
+  }
+
+  if (vpsList.length === 0) {
+    slots.length = 0; // 觸發錯誤提示
+  } else {
+    slots.push(...vpsList);
   }
 
   const refreshTime = new Date(Date.now() + 60 * 60 * 1000).toISOString();
@@ -40,13 +50,6 @@ export default async function (ctx) {
   };
 
   if (!slots.length) {
-    // 調試信息：列出所有可用的環境變量方式
-    let debugInfo = "無法讀取環境變量";
-    if (ctx.env) {
-      const envKeys = Object.keys(ctx.env).filter(k => k.includes("VPS")).join(", ");
-      debugInfo = envKeys ? `已配置: ${envKeys}` : "環境變數無法讀取";
-    }
-
     return {
       type: "widget",
       padding: 16,
@@ -78,14 +81,14 @@ export default async function (ctx) {
         { type: "spacer" },
         {
           type: "text",
-          text: "请配置 VPS1 环境变量 (格式: name#veid#apikey)",
+          text: "请配置参数",
           font: { size: "caption1" },
           textColor: "#FF453A",
           textAlign: "center",
         },
         {
           type: "text",
-          text: debugInfo,
+          text: "格式: 名称#VEID#KEY,名称#VEID#KEY",
           font: { size: "caption2" },
           textColor: "#FFFFFF44",
           textAlign: "center",
@@ -368,61 +371,83 @@ async function fetchBWGInfo(ctx, slot) {
 
   const url = `https://api.64clouds.com/v1/getServiceInfo?veid=${slot.veid}&api_key=${slot.apiKey}`;
 
-  try {
-    const resp = await ctx.http.get(url, { timeout: 9000 });
-
-    if (!resp.body) {
-      return { name: slot.name, error: true, errorMsg: "API 無響應" };
+  return new Promise((resolve) => {
+    // 优先使用 $httpClient（Egern/Surge 风格）
+    if (typeof $httpClient !== "undefined" && $httpClient) {
+      $httpClient.get({ url: url, timeout: 5000 }, (error, response, data) => {
+        if (error) {
+          return resolve({ name: slot.name, error: true, errorMsg: "网络连接超时" });
+        }
+        try {
+          const obj = JSON.parse(data);
+          return resolve(parseApiResponse(slot, obj));
+        } catch (e) {
+          return resolve({ name: slot.name, error: true, errorMsg: "数据解析异常" });
+        }
+      });
     }
-
-    // 处理两种情況：resp.body 可能是对象或字符串
-    let obj;
-    if (typeof resp.body === "string") {
-      try {
-        obj = JSON.parse(resp.body);
-      } catch (parseErr) {
-        return { name: slot.name, error: true, errorMsg: `JSON 解析失敗: ${parseErr.message}` };
-      }
-    } else {
-      obj = resp.body;
+    // 备选方案：使用 ctx.http.get
+    else if (ctx && ctx.http && ctx.http.get) {
+      ctx.http.get(url, { timeout: 9000 })
+        .then(resp => {
+          let obj;
+          if (typeof resp.body === "string") {
+            try {
+              obj = JSON.parse(resp.body);
+            } catch (parseErr) {
+              return resolve({ name: slot.name, error: true, errorMsg: `JSON 解析失败` });
+            }
+          } else {
+            obj = resp.body;
+          }
+          return resolve(parseApiResponse(slot, obj));
+        })
+        .catch(err => {
+          resolve({ name: slot.name, error: true, errorMsg: `请求异常: ${err.message}` });
+        });
     }
-
-    if (obj.error !== 0) {
-      const errorMap = {
-        1: "API Key 錯誤",
-        2: "無效的 VEID",
-        3: "VPS 已被刪除",
-        4: "VPS 已暫停",
-      };
-      return { name: slot.name, error: true, errorMsg: errorMap[obj.error] || `API 錯誤 ${obj.error}` };
+    // 没有可用的 HTTP 客户端
+    else {
+      resolve({ name: slot.name, error: true, errorMsg: "无可用的 HTTP 客户端" });
     }
+  });
+}
 
-    // 计算数据（使用 1024^3 = 1073741824）
-    const totalBytes = obj.plan_monthly_data || 0;
-    const used = obj.data_counter || 0;
-    const percent = totalBytes > 0 ? (used / totalBytes) * 100 : 0;
-
-    // 处理重置日期
-    const resetTs = obj.data_next_reset || null;
-    let remainDays = null;
-    if (resetTs) {
-      const resetDate = new Date(resetTs * 1000);
-      const now = new Date();
-      remainDays = Math.max(0, Math.ceil((resetDate - now) / 86400000));
-    }
-
-    return {
-      name: slot.name,
-      error: null,
-      used,
-      totalBytes,
-      percent,
-      expire: null,
-      remainDays: remainDays,
+function parseApiResponse(slot, obj) {
+  // 检查 API 错误
+  if (obj.error !== 0) {
+    const errorMap = {
+      1: "API Key 错误",
+      2: "无效的 VEID",
+      3: "VPS 已被删除",
+      4: "VPS 已暂停",
     };
-  } catch (err) {
-    return { name: slot.name, error: true, errorMsg: `請求失敗: ${err.message || "未知錯誤"}` };
+    return { name: slot.name, error: true, errorMsg: errorMap[obj.error] || `API 错误 ${obj.error}` };
   }
+
+  // 数据单位转换（使用 1024^3 = 1073741824）
+  const totalBytes = obj.plan_monthly_data || 0;
+  const used = obj.data_counter || 0;
+  const percent = totalBytes > 0 ? (used / totalBytes) * 100 : 0;
+
+  // 处理重置日期
+  const resetTs = obj.data_next_reset || null;
+  let remainDays = null;
+  if (resetTs) {
+    const resetDate = new Date(resetTs * 1000);
+    const now = new Date();
+    remainDays = Math.max(0, Math.ceil((resetDate - now) / 86400000));
+  }
+
+  return {
+    name: slot.name,
+    error: null,
+    used,
+    totalBytes,
+    percent,
+    expire: null,
+    remainDays: remainDays,
+  };
 }
 
 // ─── 工具函数 ─────────────────────────────────────────────────
