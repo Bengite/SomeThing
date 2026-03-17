@@ -267,13 +267,25 @@ function buildCard(result, total) {
           },
           {
             type: "text",
-            text: location ? `${name} (${location})` : name,
+            text: name,
             font: { size: "subheadline", weight: "semibold" },
             textColor: "#FFFFFFDD",
             maxLines: 1,
             minScale: 0.75,
             flex: 1,
           },
+          ...(location && expireText ? [{ type: "spacer" }] : []),
+          ...(location
+            ? [
+                {
+                  type: "text",
+                  text: location,
+                  font: { size: "caption2" },
+                  textColor: "#FFFFFF77",
+                  maxLines: 1,
+                },
+              ]
+            : []),
           ...(expireText
             ? [
                 {
