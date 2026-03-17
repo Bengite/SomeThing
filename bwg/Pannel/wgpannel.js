@@ -274,7 +274,7 @@ function buildCard(result, total) {
             minScale: 0.75,
             flex: 1,
           },
-          ...(location && expireText ? [{ type: "spacer" }] : []),
+          ...(location ? [{ type: "spacer" }] : []),
           ...(location
             ? [
                 {
@@ -286,7 +286,6 @@ function buildCard(result, total) {
                 },
               ]
             : []),
-          ...(location && expireText ? [{ type: "spacer" }] : []),
           ...(expireText
             ? [
                 {
