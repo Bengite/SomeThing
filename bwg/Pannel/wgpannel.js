@@ -283,6 +283,7 @@ function buildCard(result, total) {
                   font: { size: "caption2" },
                   textColor: "#FFFFFF77",
                   maxLines: 1,
+                  flex: 1,
                 },
               ]
             : []),
