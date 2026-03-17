@@ -450,10 +450,10 @@ function parseApiResponse(slot, obj) {
     remainDays = Math.max(0, Math.ceil((resetDate - now) / 86400000));
   }
 
-  // 提取機房位置信息（優先順序：node_location > node_name > dc_name）
+  // 提取機房位置信息（優先順序：node_datacenter > node_name > dc_name）
   let location = "";
-  if (obj.node_location) {
-    location = obj.node_location; // 直接使用 node_location 的值
+  if (obj.node_datacenter) {
+    location = obj.node_datacenter.split(",")[0].trim(); // 取第一個逗號前的內容
   } else if (obj.node_name) {
     location = obj.node_name;
   } else if (obj.dc_name) {
