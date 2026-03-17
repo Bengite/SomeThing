@@ -157,7 +157,7 @@ export default async function (ctx) {
   };
 }
 
-// ─── 卡片构建 ─────────────────────────────────────────────────
+// ─── 卡片构建 ─────────────────────────────────────────────────-
 
 function buildCard(result, total) {
   const { name, error, errorMsg, used, totalBytes, percent, expire, remainDays, location } = result;
