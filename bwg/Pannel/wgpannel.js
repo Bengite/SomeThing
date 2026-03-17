@@ -452,8 +452,8 @@ function parseApiResponse(slot, obj) {
 
   // 提取機房位置信息（优先顺序：hostname > node_name > dc_name）
   let location = "";
-  if (obj.hostname) {
-    location = obj.hostname.split(".")[0]; // 例如 "usca_1" -> "usca"
+  if (obj.node_location) {
+    location = obj.node_location.split(".")[0]; // 例如 "usca_1" -> "usca"
   } else if (obj.node_name) {
     location = obj.node_name;
   } else if (obj.dc_name) {
