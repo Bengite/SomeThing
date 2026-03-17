@@ -337,16 +337,21 @@ function buildCard(result, total) {
 
 async function fetchBWGInfo(ctx, slot) {
   if (!slot.veid || !slot.apiKey) {
+    console.log(`[${slot.name}] 缺少 VEID 或 API Key`);
     return { name: slot.name, error: true };
   }
 
   const url = `https://api.64clouds.com/v1/getServiceInfo?veid=${slot.veid}&api_key=${slot.apiKey}`;
+  console.log(`[${slot.name}] 请求 API: ${url}`);
 
   try {
     const resp = await ctx.http.get(url, { timeout: 9000 });
+    console.log(`[${slot.name}] 状态码: ${resp.status}`);
     const obj = JSON.parse(resp.body);
+    console.log(`[${slot.name}] 响应数据: ${JSON.stringify(obj)}`);
 
     if (obj.error !== 0) {
+      console.log(`[${slot.name}] API 错误代码: ${obj.error}`);
       return { name: slot.name, error: true };
     }
 
@@ -374,6 +379,7 @@ async function fetchBWGInfo(ctx, slot) {
       remainDays: remainDays,
     };
   } catch (err) {
+    console.log(`[${slot.name}] 请求出错: ${err.message}`);
     return { name: slot.name, error: true };
   }
 }
