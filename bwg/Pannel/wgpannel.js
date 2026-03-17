@@ -160,7 +160,7 @@ export default async function (ctx) {
 // ─── 卡片构建 ─────────────────────────────────────────────────
 
 function buildCard(result, total) {
-  const { name, error, errorMsg, used, totalBytes, percent, expire, remainDays } = result;
+  const { name, error, errorMsg, used, totalBytes, percent, expire, remainDays, location } = result;
 
   const usageColor =
     error
@@ -251,7 +251,7 @@ function buildCard(result, total) {
     borderWidth: 0.5,
     borderColor: "#FFFFFF10",
     children: [
-      // ── 第一行：名称 + 到期 ──
+      // ── 第一行：名称 + 機房 + 到期 ──
       {
         type: "stack",
         direction: "row",
@@ -274,6 +274,17 @@ function buildCard(result, total) {
             minScale: 0.75,
             flex: 1,
           },
+          ...(location
+            ? [
+                {
+                  type: "text",
+                  text: location,
+                  font: { size: "caption2" },
+                  textColor: "#FFFFFF77",
+                  maxLines: 1,
+                },
+              ]
+            : []),
           ...(expireText
             ? [
                 {
@@ -439,6 +450,16 @@ function parseApiResponse(slot, obj) {
     remainDays = Math.max(0, Math.ceil((resetDate - now) / 86400000));
   }
 
+  // 提取機房位置信息（优先顺序：hostname > node_name > dc_name）
+  let location = "";
+  if (obj.hostname) {
+    location = obj.hostname.split(".")[0]; // 例如 "usca_1" -> "usca"
+  } else if (obj.node_name) {
+    location = obj.node_name;
+  } else if (obj.dc_name) {
+    location = obj.dc_name;
+  }
+
   return {
     name: slot.name,
     error: null,
@@ -447,6 +468,7 @@ function parseApiResponse(slot, obj) {
     percent,
     expire: null,
     remainDays: remainDays,
+    location: location,
   };
 }
 
