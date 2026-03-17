@@ -286,6 +286,7 @@ function buildCard(result, total) {
                 },
               ]
             : []),
+          ...(location && expireText ? [{ type: "spacer" }] : []),
           ...(expireText
             ? [
                 {
