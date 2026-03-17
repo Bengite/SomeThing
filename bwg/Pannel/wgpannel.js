@@ -72,7 +72,7 @@ export default async function (ctx) {
             },
             {
               type: "text",
-              text: "订阅流量",
+              text: "瓦工流量",
               font: { size: "caption1", weight: "semibold" },
               textColor: "#FFFFFF66",
             },
@@ -123,7 +123,7 @@ export default async function (ctx) {
           },
           {
             type: "text",
-            text: "订阅流量",
+            text: "瓦工流量",
             font: { size: "caption1", weight: "semibold" },
             textColor: "#FFFFFF55",
           },
