@@ -375,7 +375,17 @@ async function fetchBWGInfo(ctx, slot) {
       return { name: slot.name, error: true, errorMsg: "API 無響應" };
     }
 
-    const obj = JSON.parse(resp.body);
+    // 处理两种情況：resp.body 可能是对象或字符串
+    let obj;
+    if (typeof resp.body === "string") {
+      try {
+        obj = JSON.parse(resp.body);
+      } catch (parseErr) {
+        return { name: slot.name, error: true, errorMsg: `JSON 解析失敗: ${parseErr.message}` };
+      }
+    } else {
+      obj = resp.body;
+    }
 
     if (obj.error !== 0) {
       const errorMap = {
