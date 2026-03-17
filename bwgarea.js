@@ -1,6 +1,7 @@
 /**
- * BWG 多台 VPS 監控 - 視覺美化版
- * 格式：名稱 -> 流量狀況 -> 重置日期加
+ * BWG VPS Status Panel (Egern Style)
+ * 模仿「機場訂閱.js」精緻風格
+ * 參數格式: 名稱#VEID#KEY,名稱#VEID#KEY
  */
 
 let vpsList = [];
@@ -15,37 +16,40 @@ async function fetchBWG(vps) {
     const url = `https://api.64clouds.com/v1/getServiceInfo?veid=${vps.veid}&api_key=${vps.apiKey}`;
     return new Promise((resolve) => {
         $httpClient.get({ url: url, timeout: 5000 }, (error, response, data) => {
-            if (error) return resolve(`❌ ${vps.name}\n   連接失敗`);
+            if (error) return resolve(`🚫 **${vps.name}**\n   └ 網絡連接超時`);
             try {
                 const obj = JSON.parse(data);
-                if (obj.error !== 0) return resolve(`❌ ${vps.name}\n   API Key 錯誤`);
+                if (obj.error !== 0) return resolve(`⚠️ **${vps.name}**\n   └ API 配置無效`);
 
-                // 數據處理 (GB)
+                // 數據轉換
                 const total = (obj.plan_monthly_data / 1073741824).toFixed(0);
-                const used = (obj.data_counter / 1073741824).toFixed(1);
-                const remain = (total - used).toFixed(1);
-                const percent = Math.min(((used / total) * 100), 100).toFixed(0);
+                const used = (obj.data_counter / 1073741824).toFixed(2);
+                const remain = (total - used).toFixed(2);
+                const percent = Math.min(((used / total) * 100), 100).toFixed(1);
                 
-                // 日期處理
+                // 日期格式化 (MM-DD)
                 const d = new Date(obj.data_next_reset * 1000);
-                const resetDate = `${d.getMonth() + 1}月${d.getDate()}日`;
+                const resetDate = `${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
 
-                // 視覺組件
-                const barNum = Math.floor(percent / 10);
-                const bar = "■".repeat(barNum) + "□".repeat(10 - barNum);
-                const statusEmoji = percent > 90 ? "🔴" : (percent > 70 ? "🟡" : "🟢");
+                // 顏色與狀態控制 (模仿原腳本邏輯)
+                let icon = "🟢";
+                if (percent > 60) icon = "🟡";
+                if (percent > 85) icon = "🔴";
 
-                // --- 格式化輸出 ---
-                // 第一行：名稱
-                const line1 = `${statusEmoji} **${vps.name.toUpperCase()}**`;
-                // 第二行：流量進度條
-                const line2 = `      流量: ${bar} ${percent}%`;
-                // 第三行：剩餘詳情與日期
-                const line3 = `      剩餘: ${remain}G / ${total}G  |  ⏳ ${resetDate} 重置`;
+                // 生成進度條 (8格)
+                const barLen = 8;
+                const barUsed = Math.round((percent / 100) * barLen);
+                const bar = "●".repeat(barUsed) + "○".repeat(barLen - barUsed);
 
-                resolve(`${line1}\n${line2}\n${line3}`);
+                // 拼湊精美樣式
+                let res = `${icon} **${vps.name.toUpperCase()}**\n`;
+                res += `   📊 使用：${used} / ${total} GB (${percent}%)\n`;
+                res += `   ⏳ 狀態：${bar} 剩餘 ${remain} GB\n`;
+                res += `   🗓️ 重置：${resetDate} (UTC+0)`;
+
+                resolve(res);
             } catch (e) {
-                resolve(`❌ ${vps.name}\n   數據解析失敗`);
+                resolve(`❌ **${vps.name}**\n   └ 數據解析異常`);
             }
         });
     });
@@ -53,25 +57,22 @@ async function fetchBWG(vps) {
 
 async function main() {
     if (vpsList.length === 0) {
-        $done({ title: "BWG 監控", content: "⚠️ 未配置參數\n格式: 名稱#VEID#KEY", icon: "info.circle" });
+        $done({ title: "VPS 流量監控", content: "未檢測到參數配置\n請在插件參數中輸入 名稱#VEID#KEY", icon: "exclamationmark.triangle.fill", "icon-color": "#FFCC00" });
         return;
     }
 
     try {
         const results = await Promise.all(vpsList.map(vps => fetchBWG(vps)));
-        
-        // 使用分隔線增加美感
-        const separator = "\n" + "─".repeat(23) + "\n";
-        const panelBody = results.join(separator);
+        const finalBody = results.join("\n" + "─".repeat(15) + "\n");
 
         $done({
-            title: "BandwagonHost 實時狀態",
-            content: panelBody,
-            icon: "network",
-            "icon-color": "#34C759" // 綠色圖標
+            title: "BandwagonHost 控制面板",
+            content: finalBody,
+            icon: "icloud.and.arrow.down.fill",
+            "icon-color": "#5856D6" // 使用原腳本風格的紫色調
         });
     } catch (err) {
-        $done({ title: "BWG 監控", content: "運行出錯", icon: "error" });
+        $done({ title: "ERROR", content: err.toString() });
     }
 }
 
