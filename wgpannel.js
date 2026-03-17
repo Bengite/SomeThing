@@ -6,6 +6,10 @@ export default async function (ctx) {
   const MAX = 5;
   const slots = [];
 
+  // 調試：打印可用的環境變量方式
+  console.log("ctx.env:", ctx.env);
+  console.log("ctx:", Object.keys(ctx));
+
   for (let i = 1; i <= MAX; i++) {
     const config = (ctx.env[`VPS${i}`] || "").trim();
     if (!config) continue;
@@ -36,6 +40,13 @@ export default async function (ctx) {
   };
 
   if (!slots.length) {
+    // 調試信息：列出所有可用的環境變量方式
+    let debugInfo = "無法讀取環境變量";
+    if (ctx.env) {
+      const envKeys = Object.keys(ctx.env).filter(k => k.includes("VPS")).join(", ");
+      debugInfo = envKeys ? `已配置: ${envKeys}` : "環境變數無法讀取";
+    }
+
     return {
       type: "widget",
       padding: 16,
@@ -70,6 +81,13 @@ export default async function (ctx) {
           text: "请配置 VPS1 环境变量 (格式: name#veid#apikey)",
           font: { size: "caption1" },
           textColor: "#FF453A",
+          textAlign: "center",
+        },
+        {
+          type: "text",
+          text: debugInfo,
+          font: { size: "caption2" },
+          textColor: "#FFFFFF44",
           textAlign: "center",
         },
       ],
