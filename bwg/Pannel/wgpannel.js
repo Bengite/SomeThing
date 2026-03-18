@@ -43,7 +43,7 @@ export default async function (ctx) {
 
   const bgGradient = {
     type: "linear",
-    colors: ["#0F0F0F", "#1A1A1A", "#2A2A2A", "#1A1A1A"],
+    colors: ["#0F0F0F", "#1A1A1A", "#1A1A1A", "#0F0F0F"],
     stops: [0, 0.35, 0.7, 1],
     startPoint: { x: 0, y: 0 },
     endPoint: { x: 0.8, y: 1 },
