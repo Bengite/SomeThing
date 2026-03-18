@@ -1,6 +1,6 @@
 // 搬瓦工 (BWG) 流量面板小组件
-// 参数格式：名称#VEID#KEY,名称#VEID#KEY,名称#VEID#KEY
-// 例如：香港 CN2 GIA#123456#abc123,日本软银#789012#def456
+// 参数格式：NAME : VPS1,VPS2...  KEY: 名称#VEID#KEY,名称#VEID#KEY
+// 例如：香港 CN2 GIA#123456#abc123
 
 export default async function (ctx) {
   const MAX = 5;
@@ -17,7 +17,6 @@ export default async function (ctx) {
     });
   }
 
-  // 方式 2: 讀環境變數（VPS1, VPS2...）
   if (vpsList.length === 0 && ctx.env) {
     for (let i = 1; i <= MAX; i++) {
       const config = (ctx.env[`VPS${i}`] || "").trim();
@@ -88,7 +87,7 @@ export default async function (ctx) {
         },
         {
           type: "text",
-          text: "格式: 名称#VEID#KEY,名称#VEID#KEY",
+          text: "格式: 名称#VEID#KEY",
           font: { size: "caption2" },
           textColor: "#FFFFFF44",
           textAlign: "center",
