@@ -168,7 +168,7 @@ function buildCard(result, total) {
       ? "#FF453A"
       : percent >= 70
       ? "#FF9F0A"
-      : "#34D399";
+      : "#5FCFC4";
   //#34D399
   // 错误卡片
   if (error) {
