@@ -68,7 +68,7 @@ export default async function (ctx) {
               src: "sf-symbol:chart.bar.fill",
               width: 13,
               height: 13,
-              color: "#FF9F0A",
+              color: "#FF9F0Aff",
             },
             {
               type: "text",
@@ -119,7 +119,7 @@ export default async function (ctx) {
             src: "sf-symbol:chart.bar.fill",
             width: 13,
             height: 13,
-            color: "#FF9F0A",
+            color: "#FF9F0Aff",
           },
           {
             type: "text",
