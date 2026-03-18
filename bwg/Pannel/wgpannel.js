@@ -87,7 +87,7 @@ export default async function (ctx) {
         },
         {
           type: "text",
-          text: "VPS1 : 名称#VEID#KEY",
+          text: "VPS{num} : 名称#VEID#KEY",
           font: { size: "caption2" },
           textColor: "#FFFFFF44",
           textAlign: "center",
