@@ -64,7 +64,7 @@ export default async function(ctx) {
     const pure = pureResp.data || {};
 
     const pingMs = nodePing || localPing || 0;
-    const pingColor = pingMs === 0 ? C.muted : (pingMs < 100 ? C.teal : (pingMs < 200 ? C.gold : C.red));
+    const pingColor = pingMs === 0 ? C.muted : (pingMs < 300 ? C.teal : (pingMs < 500 ? C.gold : C.red));
 
     const rawISP = (Array.isArray(local.location) ? local.location[local.location.length - 1] : "") || node?.isp || node?.org;
     const currentISP = fmtISP(rawISP);
@@ -105,8 +105,8 @@ export default async function(ctx) {
             { type: 'spacer' },
             { type: 'stack', direction: 'row', alignItems: 'center', gap: 2, children: [
                 { type: 'image', src: 'sf-symbol:timer', color: pingColor, width: 12, height: 12 },
-                { type: 'text', text: pingMs > 0 ? `${pingMs}` : "--", font: { size: 12, weight: 'bold' }, textColor: pingColor },
-                { type: 'text', text: 'ms', font: { size: 12, weight: 'medium' }, textColor: pingColor }
+              //  { type: 'text', text: pingMs > 0 ? `${pingMs}` : "--", font: { size: 12, weight: 'bold' }, textColor: pingColor },
+              //  { type: 'text', text: 'ms', font: { size: 12, weight: 'medium' }, textColor: pingColor }
             ]}
         ]},
         { type: 'spacer', length: 8 },
