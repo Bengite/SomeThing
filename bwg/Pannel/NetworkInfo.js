@@ -89,7 +89,7 @@ export default async function(ctx) {
       type: 'stack', direction: 'row', alignItems: 'center', gap: 4, children: [
         { type: 'stack', direction: 'row', alignItems: 'center', gap: 2, width: 45, children: [
             { type: 'image', src: `sf-symbol:${icon}`, color, width: 13, height: 13 },
-            { type: 'text', text: label, font: { size: 12, weight: 'heavy' }, textColor: color }
+            { type: 'text', text: label, font: { size: 12, weight: 'bold' }, textColor: color }
         ]},
         { type: 'text', text: content, font: { size: 12, weight: 'medium' }, textColor: C.sub, maxLines: 1, flex: 1 }
       ]
