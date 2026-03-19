@@ -118,7 +118,7 @@ export default async function (ctx) {
             src: "sf-symbol:chart.bar.fill",
             width: 13,
             height: 13,
-            color: "#5FCFC4",
+            color: "#80d8cf",
           },
           {
             type: "text",
@@ -168,7 +168,7 @@ function buildCard(result, total) {
       ? "#FF453A"
       : percent >= 70
       ? "#FF9F0A"
-      : "#5FCFC4";
+      : "#80d8cf";
   //#34D399
   // 错误卡片
   if (error) {
