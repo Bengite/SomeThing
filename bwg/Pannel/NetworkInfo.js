@@ -100,8 +100,8 @@ export default async function(ctx) {
       backgroundGradient: { type: 'linear', colors: C.bg, startPoint: { x: 0, y: 0 }, endPoint: { x: 1, y: 1 } },
       children: [
         { type: 'stack', direction: 'row', alignItems: 'center', gap: 6, children: [
-            { type: 'image', src: wifiSsid ? 'sf-symbol:wifi' : (cellularRadio ? 'sf-symbol:antenna.radiowaves.left.and.right' : 'sf-symbol:wifi.slash'), color: C.main, width: 16, height: 16 },
-            { type: 'text', text: `${currentISP} · ${wifiSsid || radioType || "未连接"}`, font: { size: 15, weight: 'heavy' }, textColor: C.main, maxLines: 1, minScale: 0.7 },
+            { type: 'image', src: wifiSsid ? 'sf-symbol:wifi' : (cellularRadio ? 'sf-symbol:antenna.radiowaves.left.and.right' : 'sf-symbol:wifi.slash'), color: pingColor width: 16, height: 16 },
+            { type: 'text', text: `${currentISP} · ${wifiSsid || radioType || "未连接"}`, font: { size: 15, weight: 'heavy' }, textColor: pingColor, maxLines: 1, minScale: 0.7 },
             { type: 'spacer' },
             { type: 'stack', direction: 'row', alignItems: 'center', gap: 2, children: [
                 { type: 'image', src: 'sf-symbol:tornado', color: pingColor, width: 12, height: 12 },
