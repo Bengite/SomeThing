@@ -64,7 +64,7 @@ export default async function(ctx) {
     const pure = pureResp.data || {};
 
     const pingMs = nodePing || localPing || 0;
-    const pingColor = pingMs === 0 ? C.muted : (pingMs < 300 ? C.teal : (pingMs < 500 ? C.gold : C.red));
+    const pingColor = pingMs === 0 ? C.muted : (pingMs < 200 ? C.teal : (pingMs < 500 ? C.gold : C.red));
 
     const rawISP = (Array.isArray(local.location) ? local.location[local.location.length - 1] : "") || node?.isp || node?.org;
     const currentISP = fmtISP(rawISP);
