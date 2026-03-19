@@ -111,10 +111,10 @@ export default async function(ctx) {
         ]},
         { type: 'spacer', length: 8 },
         { type: 'stack', direction: 'column', alignItems: 'start', gap: 8, children: [
-            buildRow('house.fill', C.blue, '内网', r1Content),
-            buildRow('location.circle.fill', C.blue, '本地', r2Content),
-            buildRow('network', C.blue, '节点', r3Content),
-            buildRow('shield.lefthalf.filled', C.blue, '属性', r4Content)
+            buildRow('link.circle.fill', C.blue, '', r1Content),
+            buildRow('mappin.circle.fill', C.blue, '', r2Content),
+            buildRow('airplane', C.blue, '', r3Content),
+            buildRow('shield.fill', C.blue, '', r4Content)
         ]},
         { type: 'spacer' }
       ]
