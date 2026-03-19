@@ -182,7 +182,7 @@ export default async function(ctx) {
           { type: 'text', text: `${Y}年${M}月${D}日 星期${WEEK}`, font: { size: 15, weight: 'heavy' }, textColor: C.main },
           { type: 'spacer' },
           { type: 'stack', direction: 'row', alignItems: 'center', gap: 3, children: [
-              { type: 'image', src: 'sf-symbol:sparkles', color: C.gold, width: 12, height: 12 },
+           //   { type: 'image', src: 'sf-symbol:sparkles', color: C.gold, width: 12, height: 12 },
               { type: 'text', text: obj.astro, font: { size: 12, weight: 'medium' }, textColor: C.muted }
           ]}
       ]},
