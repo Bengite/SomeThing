@@ -55,7 +55,7 @@ export default async function(ctx) {
 
     const [localResp, nodeResp, pureResp] = await Promise.all([
       httpGet('https://myip.ipip.net/json'),
-      httpGet('http://ip-api.com/json/?lang=zh-CN'),
+      httpGet('https://ip-api.com/json/?lang=zh-CN'),
       httpGet('https://my.ippure.com/v1/info')
     ]);
 
@@ -76,8 +76,8 @@ export default async function(ctx) {
     const r1Content = [internalIP || "未连接", gatewayIP !== internalIP ? gatewayIP : null].filter(Boolean).join(" / ");
     const locStr = Array.isArray(local.location) ? local.location.slice(0, 3).join('').trim() : '';
     const r2Content = [local.ip || "获取中...", locStr].filter(Boolean).join(" / ");
-    const nodeLoc = [getFlagEmoji(node.countryCode), node.country, node.city].filter(Boolean).join(" ");
-    const asnStr = node.as ? String(node.as).split(' ')[0] : "";
+    const nodeLoc = [getFlagEmoji(node?.countryCode), node?.country, node?.city].filter(Boolean).join(" ");
+    const asnStr = (node?.as) ? String(node.as).split(' ')[0] : "";
     const r3Content = [node.query || node.ip || "获取中...", nodeLoc, asnStr].filter(Boolean).join(" / ");
 
     const risk = pure.fraudScore;
