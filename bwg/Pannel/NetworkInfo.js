@@ -16,7 +16,7 @@ export default async function(ctx) {
     gold: { light: '#B58A28', dark: '#D6A53A' },
     red: { light: '#CA3B32', dark: '#FF453A' },
     teal: { light: '#2E8045', dark: '#32D74B' },
-    blue: { light: '#5FCFC4', dark: '#5FCFC4' },
+    blue: { light: '#80d8cf', dark: '#80d8cf' },
     purple: { light: '#6B4C9A', dark: '#8B6AA8' },
     cyan: { light: '#628C7B', dark: '#73A491' }
   };
