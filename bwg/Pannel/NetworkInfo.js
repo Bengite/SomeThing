@@ -16,7 +16,7 @@ export default async function(ctx) {
     gold: { light: '#B58A28', dark: '#D6A53A' },
     red: { light: '#CA3B32', dark: '#FF453A' },
     teal: { light: '#2E8045', dark: '#32D74B' },
-    blue: { light: '#3A5F85', dark: '#5E8EB8' },
+    blue: { light: '#5FCFC4', dark: '#5FCFC4' },
     purple: { light: '#6B4C9A', dark: '#8B6AA8' },
     cyan: { light: '#628C7B', dark: '#73A491' }
   };
@@ -111,10 +111,10 @@ export default async function(ctx) {
         ]},
         { type: 'spacer', length: 8 },
         { type: 'stack', direction: 'column', alignItems: 'start', gap: 8, children: [
-            buildRow('house.fill', C.teal, '内网', r1Content),
+            buildRow('house.fill', C.blue, '内网', r1Content),
             buildRow('location.circle.fill', C.blue, '本地', r2Content),
-            buildRow('network', C.purple, '节点', r3Content),
-            buildRow('shield.lefthalf.filled', C.cyan, '属性', r4Content)
+            buildRow('network', C.blue, '节点', r3Content),
+            buildRow('shield.lefthalf.filled', C.blue, '属性', r4Content)
         ]},
         { type: 'spacer' }
       ]
