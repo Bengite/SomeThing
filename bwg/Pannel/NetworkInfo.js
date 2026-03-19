@@ -104,7 +104,7 @@ export default async function(ctx) {
             { type: 'text', text: `${currentISP} · ${wifiSsid || radioType || "未连接"}`, font: { size: 15, weight: 'heavy' }, textColor: C.main, maxLines: 1, minScale: 0.7 },
             { type: 'spacer' },
             { type: 'stack', direction: 'row', alignItems: 'center', gap: 2, children: [
-                { type: 'image', src: 'sf-symbol:timer', color: pingColor, width: 12, height: 12 },
+                { type: 'image', src: 'sf-symbol:waveform.path', color: pingColor, width: 12, height: 12 },
               //  { type: 'text', text: pingMs > 0 ? `${pingMs}` : "--", font: { size: 12, weight: 'bold' }, textColor: pingColor },
               //  { type: 'text', text: 'ms', font: { size: 12, weight: 'medium' }, textColor: pingColor }
             ]}
