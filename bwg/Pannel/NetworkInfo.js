@@ -105,8 +105,8 @@ export default async function(ctx) {
             { type: 'spacer' },
             { type: 'stack', direction: 'row', alignItems: 'center', gap: 2, children: [
              //   { type: 'image', src: 'sf-symbol:tornado', color: pingColor, width: 12, height: 12 },
-              //  { type: 'text', text: pingMs > 0 ? `${pingMs}` : "--", font: { size: 12, weight: 'bold' }, textColor: pingColor },
-              //  { type: 'text', text: 'ms', font: { size: 12, weight: 'medium' }, textColor: pingColor }
+               { type: 'text', text: pingMs > 0 ? `${pingMs}` : "--", font: { size: 12, weight: 'bold' }, textColor: muted },
+               { type: 'text', text: 'ms', font: { size: 12, weight: 'medium' }, textColor: muted }
             ]}
         ]},
         { type: 'spacer', length: 8 },
