@@ -174,7 +174,7 @@ export default async function(ctx) {
   const dynamicGap = gridLen <= 2 ? 9 : (gridLen === 3 ? 6 : 4);
 
   return {
-    type: 'widget', padding: 12, url: 'calshow://',
+    type: 'widget', padding: 12,
     backgroundGradient: { type: 'linear', colors: C.bg, startPoint: { x: 0, y: 0 }, endPoint: { x: 1, y: 1 } },
     children: [
       { type: 'stack', direction: 'row', alignItems: 'center', gap: 6, children: [
