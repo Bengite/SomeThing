@@ -71,7 +71,8 @@ export default async function(ctx) {
 
     const rawRadio = cellularRadio ? String(cellularRadio).toUpperCase().trim() : "";
     const radioType = { "GPRS": "2.5G", "EDGE": "2.75G", "WCDMA": "3G", "LTE": "4G", "NR": "5G", "NRNSA": "5G" }[rawRadio] || rawRadio;
-    const jumpUrl = { "中国移动": "leadeon://", "中国电信": "ctclient://", "中国联通": "chinaunicom://" }[currentISP] || "";
+   // const jumpUrl = { "中国移动": "leadeon://", "中国电信": "ctclient://", "中国联通": "chinaunicom://" }[currentISP] || "";
+    const jumpUrl ="";
 
     const r1Content = [internalIP || "未连接", gatewayIP !== internalIP ? gatewayIP : null].filter(Boolean).join(" / ");
     const locStr = Array.isArray(local.location) ? local.location.slice(0, 3).join('').trim() : '';
