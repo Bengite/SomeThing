@@ -88,7 +88,7 @@ export default async function(ctx) {
     const buildRow = (icon, color, label, content) => ({
       type: 'stack', direction: 'row', alignItems: 'center', gap: 4, children: [
         { type: 'stack', direction: 'row', alignItems: 'center', gap: 2, width: 45, children: [
-           // { type: 'image', src: `sf-symbol:${icon}`, color, width: 13, height: 13 },
+            { type: 'image', src: `sf-symbol:${icon}`, color, width: 13, height: 13 },
             { type: 'text', text: label, font: { size: 12, weight: 'bold' }, textColor: color }
         ]},
         { type: 'text', text: content, font: { size: 12, weight: 'medium' }, textColor: C.sub, maxLines: 1, flex: 1 }
@@ -112,9 +112,9 @@ export default async function(ctx) {
         { type: 'spacer', length: 8 },
         { type: 'stack', direction: 'column', alignItems: 'start', gap: 8, children: [
             buildRow('personalhotspot', C.blue, '内网', r1Content),
-            buildRow('location.north.fill', C.blue, '本地', r2Content),
-            buildRow('airplane', C.blue, '节点', r3Content),
-            buildRow('shield.fill', C.blue, '属性', r4Content)
+            buildRow('location.circle.fill', C.blue, '本地', r2Content),
+            buildRow('network', C.blue, '节点', r3Content),
+            buildRow('shield.lefthalf.filled', C.blue, '属性', r4Content)
         ]},
         { type: 'spacer' }
       ]
