@@ -3,6 +3,27 @@
 // 例如：香港 CN2 GIA#123456#abc123
 
 export default async function (ctx) {
+  // 深浅色模式配置
+  const C = {
+    bg: [{ light: '#FFFFFF', dark: '#1C1C1E' }, { light: '#F5F5F9', dark: '#0C0C0E' }],
+    main: { light: '#1C1C1E', dark: '#FFFFFF' },
+    sub: { light: '#48484A', dark: '#D1D1D6' },
+    muted: { light: '#8E8E93', dark: '#8E8E93' },
+    cardBg: { light: '#F2F2F7', dark: '#2C2C2E' },
+    cardBorder: { light: '#E5E5EA', dark: '#38383A' },
+    teal: { light: '#80d8cf', dark: '#80d8cf' },
+    red: { light: '#CA3B32', dark: '#FF453A' },
+    orange: { light: '#FF9F0A', dark: '#FF9F0A' },
+    lightText: { light: '#FFFFFF55', dark: '#FFFFFF55' },
+    lightText2: { light: '#FFFFFF77', dark: '#FFFFFF77' },
+    lightText3: { light: '#FFFFFFAA', dark: '#FFFFFFAA' },
+    lightText4: { light: '#FFFFFFCC', dark: '#FFFFFFCC' },
+    lightText5: { light: '#FFFFFFDD', dark: '#FFFFFFDD' },
+    errorBg: { light: '#FFFFFF07', dark: '#FFFFFF07' },
+    errorBorder: { light: '#FF453A28', dark: '#FF453A28' },
+    progressEmpty: { light: '#FFFFFF15', dark: '#FFFFFF15' },
+  };
+
   const MAX = 5;
   const slots = [];
 
@@ -40,20 +61,12 @@ export default async function (ctx) {
   const now = new Date();
   const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
-  const bgGradient = {
-    type: "linear",
-    colors: ["#0F0F0F", "#1A1A1A", "#1A1A1A", "#0F0F0F"],
-    stops: [0, 0.35, 0.7, 1],
-    startPoint: { x: 0, y: 0 },
-    endPoint: { x: 0.8, y: 1 },
-  };
-
   if (!slots.length) {
     return {
       type: "widget",
       padding: 16,
       gap: 10,
-      backgroundGradient: bgGradient,
+      backgroundGradient: { type: 'linear', colors: C.bg, startPoint: { x: 0, y: 0 }, endPoint: { x: 1, y: 1 } },
       refreshAfter: refreshTime,
       children: [
         {
@@ -67,13 +80,13 @@ export default async function (ctx) {
               src: "sf-symbol:chart.bar.fill",
               width: 13,
               height: 13,
-              color: "#FF9F0Aff",
+              color: C.orange,
             },
             {
               type: "text",
               text: "瓦工流量",
               font: { size: "caption1", weight: "semibold" },
-              textColor: "#FFFFFF66",
+              textColor: C.muted,
             },
           ],
         },
@@ -82,14 +95,14 @@ export default async function (ctx) {
           type: "text",
           text: "请配置参数",
           font: { size: "caption1" },
-          textColor: "#FF453A",
+          textColor: C.red,
           textAlign: "center",
         },
         {
           type: "text",
           text: "VPS{num} : 名称#VEID#KEY ",
           font: { size: "caption2" },
-          textColor: "#FFFFFF44",
+          textColor: C.lightText3,
           textAlign: "center",
         },
       ],
@@ -97,13 +110,13 @@ export default async function (ctx) {
   }
 
   const results = await Promise.all(slots.map((s) => fetchBWGInfo(ctx, s)));
-  const cards = results.map((r) => buildCard(r, slots.length));
+  const cards = results.map((r) => buildCard(r, slots.length, C));
 
   return {
     type: "widget",
     padding: [14, 14, 12, 14],
     gap: 10,
-    backgroundGradient: bgGradient,
+    backgroundGradient: { type: 'linear', colors: C.bg, startPoint: { x: 0, y: 0 }, endPoint: { x: 1, y: 1 } },
     refreshAfter: refreshTime,
     children: [
       // 顶部标题栏
@@ -118,13 +131,13 @@ export default async function (ctx) {
             src: "sf-symbol:chart.bar.fill",
             width: 13,
             height: 13,
-            color: "#80d8cf",
+            color: C.teal,
           },
           {
             type: "text",
             text: "瓦工流量",
             font: { size: "caption1", weight: "semibold" },
-            textColor: "#FFFFFF55",
+            textColor: C.lightText,
           },
           { type: "spacer" },
           {
@@ -132,13 +145,13 @@ export default async function (ctx) {
             src: "sf-symbol:clock",
             width: 11,
             height: 11,
-            color: "#FFFFFF33",
+            color: C.lightText3,
           },
           {
             type: "text",
             text: timeStr,
             font: { size: "caption2" },
-            textColor: "#FFFFFF44",
+            textColor: C.lightText3,
           },
         ],
       },
@@ -158,18 +171,17 @@ export default async function (ctx) {
 
 // ─── 卡片构建 ─────────────────────────────────────────────────-
 
-function buildCard(result, total) {
+function buildCard(result, total, C) {
   const { name, error, errorMsg, used, totalBytes, percent, expire, remainDays, location } = result;
 
   const usageColor =
     error
-      ? "#FF453A"
+      ? C.red
       : percent >= 90
-      ? "#FF453A"
+      ? C.red
       : percent >= 70
-      ? "#FF9F0A"
-      : "#80d8cf";
-  //#34D399
+      ? C.orange
+      : C.teal;
   // 错误卡片
   if (error) {
     return {
@@ -177,10 +189,10 @@ function buildCard(result, total) {
       direction: "column",
       gap: 4,
       padding: [9, 11, 9, 11],
-      backgroundColor: "#FFFFFF07",
+      backgroundColor: C.errorBg,
       borderRadius: 11,
       borderWidth: 0.5,
-      borderColor: "#FF453A28",
+      borderColor: C.errorBorder,
       children: [
         {
           type: "stack",
@@ -193,13 +205,13 @@ function buildCard(result, total) {
               src: "sf-symbol:exclamationmark.circle.fill",
               width: 12,
               height: 12,
-              color: "#FF453A",
+              color: C.red,
             },
             {
               type: "text",
               text: name,
               font: { size: "caption1", weight: "semibold" },
-              textColor: "#FFFFFFCC",
+              textColor: C.lightText4,
               maxLines: 1,
               minScale: 0.8,
               flex: 1,
@@ -210,7 +222,7 @@ function buildCard(result, total) {
           type: "text",
           text: errorMsg || "获取失败",
           font: { size: "caption2" },
-          textColor: "#FF9F0A",
+          textColor: C.orange,
           maxLines: 2,
         },
       ],
@@ -219,21 +231,21 @@ function buildCard(result, total) {
 
   // 到期文字
   let expireText = "";
-  let expireColor = "#FFFFFF40";
+  let expireColor = C.lightText3;
   if (expire) {
     const daysLeft = Math.ceil((expire * 1000 - Date.now()) / 86400000);
     if (daysLeft < 0) {
       expireText = "已到期";
-      expireColor = "#FF453A";
+      expireColor = C.red;
     } else if (daysLeft <= 7) {
       expireText = `${daysLeft}天后到期`;
-      expireColor = "#FF9F0A";
+      expireColor = C.orange;
     } else {
       expireText = formatDate(expire);
     }
   } else if (remainDays !== null) {
     expireText = `${remainDays}天重置`;
-    expireColor = remainDays <= 3 ? "#FF9F0A" : "#FFFFFF40";
+    expireColor = remainDays <= 3 ? C.orange : C.lightText3;
   }
 
   const barFilled = Math.round(Math.min(Math.max(percent, 0), 100) / 10);
@@ -245,10 +257,10 @@ function buildCard(result, total) {
     direction: "column",
     gap: 0,
     padding: isSingle ? [14, 13, 14, 13] : [14, 11, 10, 11],
-    backgroundColor: "#FFFFFF08",
+    backgroundColor: C.cardBg,
     borderRadius: 11,
     borderWidth: 0.5,
-    borderColor: "#FFFFFF10",
+    borderColor: C.cardBorder,
     children: [
       // ── 第一行：名称 + 機房 + 到期 ──
       {
@@ -268,7 +280,7 @@ function buildCard(result, total) {
             type: "text",
             text: name,
             font: { size: "subheadline", weight: "semibold" },
-            textColor: "#FFFFFFDD",
+            textColor: C.lightText5,
             maxLines: 1,
             minScale: 0.75,
             flex: 1,
@@ -279,7 +291,7 @@ function buildCard(result, total) {
                   type: "text",
                   text: location,
                   font: { size: "caption2" },
-                  textColor: "#FFFFFF77",
+                  textColor: C.lightText2,
                   maxLines: 1,
                 },
               ]
@@ -330,7 +342,7 @@ function buildCard(result, total) {
                   type: "stack",
                   flex: barEmpty,
                   height: isSingle ? 5 : 4,
-                  backgroundColor: "#FFFFFF15",
+                  backgroundColor: C.progressEmpty,
                   borderRadius: 99,
                   children: [],
                 },
@@ -357,7 +369,7 @@ function buildCard(result, total) {
             type: "text",
             text: `${bytesToSize(used)} / ${bytesToSize(totalBytes)}`,
             font: { size: "caption2", weight: "medium" },
-            textColor: "#FFFFFFAA",
+            textColor: C.lightText3,
           },
           { type: "spacer" },
           {
