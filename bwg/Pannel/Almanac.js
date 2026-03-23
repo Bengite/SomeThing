@@ -185,7 +185,7 @@ export default async function(ctx) {
 
   return {
     type: 'widget', padding: 12,
-    backgroundGradient: { type: 'linear', colors: bgGradient, startPoint: { x: 0, y: 0 }, endPoint: { x: 1, y: 1 } },
+    backgroundGradient: bgGradient,
     children: [
       { type: 'stack', direction: 'row', alignItems: 'center', gap: 6, children: [
           { type: 'image', src: 'sf-symbol:calendar', color: C.main, width: 16, height: 16 },
