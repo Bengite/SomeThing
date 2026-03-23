@@ -21,6 +21,16 @@ export default async function(ctx) {
     transparent: '#00000000'
   };
 
+  const bgGradient = {
+    type: "linear",
+    colors: ["#0F0F0F", "#1A1A1A", "#1A1A1A", "#0F0F0F"],
+    stops: [0, 0.35, 0.7, 1],
+    startPoint: { x: 0, y: 0 },
+    endPoint: { x: 0.8, y: 1 },
+  };
+
+
+
   const now = new Date(Date.now() + (new Date().getTimezoneOffset() + 480) * 60000);
   const [Y, M, D] = [now.getFullYear(), now.getMonth() + 1, now.getDate()];
   const WEEK = "日一二三四五六"[now.getDay()];
@@ -175,7 +185,7 @@ export default async function(ctx) {
 
   return {
     type: 'widget', padding: 12,
-    backgroundGradient: { type: 'linear', colors: C.bg, startPoint: { x: 0, y: 0 }, endPoint: { x: 1, y: 1 } },
+    backgroundGradient: { type: 'linear', colors: bgGradient, startPoint: { x: 0, y: 0 }, endPoint: { x: 1, y: 1 } },
     children: [
       { type: 'stack', direction: 'row', alignItems: 'center', gap: 6, children: [
           { type: 'image', src: 'sf-symbol:calendar', color: C.main, width: 16, height: 16 },
