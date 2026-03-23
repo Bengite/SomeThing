@@ -9,7 +9,7 @@
 
 export default async function(ctx) {
   const C = {
-    bg: [{ light: '#FFFFFF', dark: '#1C1C1E' }, { light: '#F5F5F9', dark: '#0C0C0E' }],
+    bg: [{ light: '#FFFFFF', dark: '#8E8E93' }, { light: '#F5F5F9', dark: '#8E8E93' }],
     main: { light: '#1C1C1E', dark: '#FFFFFF' },
     sub: { light: '#48484A', dark: '#D1D1D6' },
     muted: { light: '#8E8E93', dark: '#8E8E93' },
