@@ -1,31 +1,28 @@
 /**
- * EGERN Token Capture Script
- * 功能: 监控指定网址, 自动提取TOKEN和BODY参数到备忘录
+ * EGERN Authorization Header Capture Script
+ * 功能: 监听包含eworkplat的URL请求，自动提取headers中的authorization值
  */
 
-// 配置区域 - 修改这些参数来适应你的需求
+// 配置区域
 const CONFIG = {
-  // 要监控的网址 (支持正则表达式或字符串匹配)
-  monitorUrl: /api\.example\.com\/login/i, // 修改为你要监控的网址
+  // 要监控的网址 (包含eworkplat)
+  monitorUrl: /eworkplat/i,
 
-  // 要提取的TOKEN字段名称
-  tokenField: 'token', // 或 'access_token', 'bearer_token' 等
+  // 要提取的header字段名称
+  headerField: 'authorization',
 
-  // 要提取的BODY参数 (数组形式, 可以提取多个)
-  bodyFields: ['user_id', 'username', 'device_id'],
-
-  // 备忘录保存位置 (使用iOS快捷指令或系统API)
+  // 备忘录保存位置
   saveToNotes: true,
 
   // 是否在控制台输出调试信息
   debug: true,
 
-  // TOKEN过期时间 (分钟)
+  // 存储KEY过期时间 (分钟)
   expireTime: 1440 // 24小时
 };
 
 /**
- * 主函数: 拦截请求并提取数据
+ * 主函数: 拦截请求并提取authorization header
  */
 function hookRequest() {
   // EGERN 请求拦截中间件
@@ -38,25 +35,13 @@ function hookRequest() {
     if (isUrlMatch(resource, CONFIG.monitorUrl)) {
       logDebug(`[Hook] 检测到目标请求: ${resource}`);
 
-      // 拦截请求体
-      if (config && config.body) {
-        const bodyData = parseBody(config.body);
-        logDebug('[Hook] 请求BODY:', bodyData);
-
-        // 处理响应
-        return originalFetch.apply(this, args).then(response => {
-          // 克隆响应以避免流被消耗
-          const clonedResponse = response.clone();
-
-          // 异步处理数据提取
-          clonedResponse.json().then(responseData => {
-            extractAndSaveData(responseData, bodyData);
-          }).catch(err => {
-            logDebug('[Error] 解析响应失败:', err);
-          });
-
-          return response;
-        });
+      // 获取请求headers中的authorization
+      if (config && config.headers) {
+        const authValue = getAuthorizationFromHeaders(config.headers);
+        if (authValue) {
+          logDebug('[Hook] 获取到Authorization:', authValue);
+          extractAndSaveData(resource, authValue);
+        }
       }
     }
 
@@ -69,64 +54,59 @@ function hookRequest() {
  */
 function hookXHR() {
   const originalOpen = XMLHttpRequest.prototype.open;
-  const originalSend = XMLHttpRequest.prototype.send;
+  const originalSetRequestHeader = XMLHttpRequest.prototype.setRequestHeader;
 
   XMLHttpRequest.prototype.open = function(method, url, ...rest) {
     this._requestUrl = url;
     this._requestMethod = method;
+    this._requestHeaders = {};
     return originalOpen.apply(this, [method, url, ...rest]);
   };
 
+  XMLHttpRequest.prototype.setRequestHeader = function(header, value) {
+    this._requestHeaders = this._requestHeaders || {};
+    if (header.toLowerCase() === CONFIG.headerField.toLowerCase()) {
+      this._requestHeaders[header] = value;
+    }
+    return originalSetRequestHeader.apply(this, [header, value]);
+  };
+
+  const originalSend = XMLHttpRequest.prototype.send;
   XMLHttpRequest.prototype.send = function(body) {
     if (isUrlMatch(this._requestUrl, CONFIG.monitorUrl)) {
       logDebug(`[XHR Hook] 检测到目标请求: ${this._requestUrl}`);
 
-      const bodyData = parseBody(body);
-      logDebug('[XHR Hook] 请求BODY:', bodyData);
+      const authValue = this._requestHeaders ?
+        Object.values(this._requestHeaders)[0] : null;
 
-      // 监听响应
-      this.addEventListener('load', function() {
-        if (this.status === 200) {
-          try {
-            const responseData = JSON.parse(this.responseText);
-            extractAndSaveData(responseData, bodyData);
-          } catch (err) {
-            logDebug('[Error] 解析XHR响应失败:', err);
-          }
-        }
-      });
+      if (authValue) {
+        logDebug('[XHR Hook] 获取到Authorization:', authValue);
+        extractAndSaveData(this._requestUrl, authValue);
+      }
     }
 
     return originalSend.apply(this, [body]);
   };
 }
 
-/**
- * 提取并保存数据
- */
-function extractAndSaveData(responseData, bodyData) {
-  const tokenValue = responseData[CONFIG.tokenField];
 
-  if (!tokenValue) {
-    logDebug('[Warn] 未找到TOKEN字段: ' + CONFIG.tokenField);
+/**
+ * 提取并保存authorization data
+ */
+function extractAndSaveData(urlString, authValue) {
+  if (!authValue) {
+    logDebug('[Warn] 未找到Authorization header');
     return;
   }
 
-  logDebug('[Success] 成功提取TOKEN:', tokenValue);
+  logDebug('[Success] 成功提取Authorization:', authValue);
 
   // 构建要保存的数据对象
   const dataToSave = {
     timestamp: new Date().toISOString(),
-    token: tokenValue,
-    extractedFields: {}
+    url: urlString,
+    authorization: authValue
   };
-
-  // 提取指定的BODY参数
-  CONFIG.bodyFields.forEach(field => {
-    if (bodyData[field]) {
-      dataToSave.extractedFields[field] = bodyData[field];
-    }
-  });
 
   logDebug('[Data] 将保存的数据:', dataToSave);
 
@@ -137,6 +117,29 @@ function extractAndSaveData(responseData, bodyData) {
 
   // 保存到本地存储
   saveToLocalStorage(dataToSave);
+}
+
+/**
+ * 从headers中提取authorization value
+ */
+function getAuthorizationFromHeaders(headers) {
+  if (!headers) return null;
+
+  // 处理不同格式的headers
+  if (headers instanceof Headers) {
+    return headers.get('authorization');
+  }
+
+  if (typeof headers === 'object') {
+    // 不区分大小写查找authorization
+    for (const key in headers) {
+      if (key.toLowerCase() === 'authorization') {
+        return headers[key];
+      }
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -232,18 +235,14 @@ function saveToNotes(data) {
  * 格式化备忘录内容
  */
 function formatNotesContent(data) {
-  let content = '【Token自动捕获】\n';
+  let content = '【Authorization自动捕获】\n';
   content += '捕获时间: ' + data.timestamp + '\n\n';
 
-  content += '[Token]\n';
-  content += data.token + '\n\n';
+  content += '[URL]\n';
+  content += data.url + '\n\n';
 
-  if (Object.keys(data.extractedFields).length > 0) {
-    content += '[提取的参数]\n';
-    Object.entries(data.extractedFields).forEach(([key, value]) => {
-      content += `${key}: ${value}\n`;
-    });
-  }
+  content += '[Authorization Key]\n';
+  content += data.authorization + '\n';
 
   return content;
 }
@@ -253,20 +252,20 @@ function formatNotesContent(data) {
  */
 function saveToLocalStorage(data) {
   try {
-    const storageKey = 'EGERN_CAPTURED_TOKENS';
+    const storageKey = 'EGERN_CAPTURED_AUTHORIZATIONS';
     const existing = localStorage.getItem(storageKey);
-    const tokens = existing ? JSON.parse(existing) : [];
+    const authorizations = existing ? JSON.parse(existing) : [];
 
     // 添加新数据
-    tokens.push(data);
+    authorizations.push(data);
 
     // 只保留最近100条记录
-    if (tokens.length > 100) {
-      tokens.shift();
+    if (authorizations.length > 100) {
+      authorizations.shift();
     }
 
-    localStorage.setItem(storageKey, JSON.stringify(tokens));
-    logDebug('[Storage] 数据已保存到localStorage');
+    localStorage.setItem(storageKey, JSON.stringify(authorizations));
+    logDebug('[Storage] Authorization已保存到localStorage');
   } catch (err) {
     logDebug('[Error] 保存到localStorage失败:', err);
   }
@@ -283,13 +282,13 @@ function logDebug(message, data = null) {
 }
 
 /**
- * 获取已保存的所有TOKEN
+ * 获取已保存的所有Authorization
  */
-function getAllSavedTokens() {
+function getAllSavedAuthorizations() {
   try {
-    const storageKey = 'EGERN_CAPTURED_TOKENS';
-    const tokens = localStorage.getItem(storageKey);
-    return tokens ? JSON.parse(tokens) : [];
+    const storageKey = 'EGERN_CAPTURED_AUTHORIZATIONS';
+    const authorizations = localStorage.getItem(storageKey);
+    return authorizations ? JSON.parse(authorizations) : [];
   } catch (err) {
     logDebug('[Error] 读取存储数据失败:', err);
     return [];
@@ -297,15 +296,15 @@ function getAllSavedTokens() {
 }
 
 /**
- * 清除所有已保存的TOKEN
+ * 清除所有已保存的Authorization
  */
-function clearAllTokens() {
+function clearAllAuthorizations() {
   try {
-    const storageKey = 'EGERN_CAPTURED_TOKENS';
+    const storageKey = 'EGERN_CAPTURED_AUTHORIZATIONS';
     localStorage.removeItem(storageKey);
-    logDebug('[Storage] 所有TOKEN已清除');
+    logDebug('[Storage] 所有Authorization已清除');
   } catch (err) {
-    logDebug('[Error] 清除TOKEN失败:', err);
+    logDebug('[Error] 清除Authorization失败:', err);
   }
 }
 
@@ -313,16 +312,15 @@ function clearAllTokens() {
  * 初始化脚本
  */
 function initialize() {
-  logDebug('[Init] 开始初始化Token捕获脚本...');
+  logDebug('[Init] 开始初始化Authorization捕获脚本...');
   logDebug('[Config] 监控URL:', CONFIG.monitorUrl);
-  logDebug('[Config] TOKEN字段:', CONFIG.tokenField);
-  logDebug('[Config] 要提取的参数:', CONFIG.bodyFields);
+  logDebug('[Config] 提取Header字段:', CONFIG.headerField);
 
   // 安装钩子
   hookXHR();
   hookRequest();
 
-  logDebug('[Init] Token捕获脚本初始化完成!');
+  logDebug('[Init] Authorization捕获脚本初始化完成!');
 }
 
 // 页面加载完成后初始化
@@ -336,8 +334,8 @@ if (document.readyState === 'loading') {
 if (typeof window !== 'undefined') {
   window.TokenCapture = {
     config: CONFIG,
-    getAllTokens: getAllSavedTokens,
-    clearTokens: clearAllTokens,
+    getAllAuthorizations: getAllSavedAuthorizations,
+    clearAuthorizations: clearAllAuthorizations,
     initialize: initialize,
     logDebug: logDebug
   };
@@ -346,6 +344,6 @@ if (typeof window !== 'undefined') {
 module.exports = {
   CONFIG,
   initialize,
-  getAllSavedTokens,
-  clearAllTokens
+  getAllSavedAuthorizations,
+  clearAllAuthorizations
 };
