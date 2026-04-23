@@ -1,0 +1,9 @@
+#!name=eworkplat Token Grabber
+#!desc=从 eworkplat 的请求头中自动提取 Authorization Token
+
+[MITM]
+hostname = %APPEND% *eworkplat*
+
+[Script]
+# 当匹配到包含 eworkplat 的 URL 时触发脚本
+GetToken = type=http-request,pattern=^https?:\/\/.*eworkplat.*,script_path=https://raw.githubusercontent.com/Bengite/SomeThing/refs/heads/main/bwg/sgmodule/get_token.js,requires-body=false
