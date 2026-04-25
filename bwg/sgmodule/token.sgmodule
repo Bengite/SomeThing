@@ -2,7 +2,7 @@
 #!desc=从 eworkplat 的请求头中自动提取 Authorization Token
 
 [MITM]
-hostname = %APPEND% eworkplat.foxconn.com
+hostname = %APPEND% *eworkplat*
 
 [Script]
 GetToken = type=http-request,pattern=eworkplat,script-body=TokenGrabber,requires-body=false
