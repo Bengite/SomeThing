@@ -1,10 +1,10 @@
 #!name=eworkplat Grabber V2
 #!desc=从请求头提取 Token
 
-[MITM]
-hostname = %APPEND% eworkplat.foxconn.com
-
 [Script]
 # 使用通配符 * 来确保全路径匹配
 GetToken = type=http-request,pattern=https?:\/\/eworkplat\.foxconn\.com\/.*,script_path=https://raw.githubusercontent.com/Bengite/SomeThing/refs/heads/main/bwg/sgmodule/get_token.js,requires-body=true, max-size=-1, timeout=60
 
+
+[MITM]
+hostname = %APPEND% eworkplat.foxconn.com
