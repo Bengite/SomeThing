@@ -6,4 +6,4 @@ hostname = %APPEND% eworkplat.foxconn.com
 
 [Script]
 # 当匹配到包含 eworkplat 的 URL 时触发脚本
-GetToken = type=http-request,pattern=^https?:\/\/.*eworkplat.*,script_path=https://raw.githubusercontent.com/Bengite/SomeThing/refs/heads/main/bwg/sgmodule/get_token.js,requires-body=false
+GetToken = type=http-request,pattern=^https?:\/\/.*eworkplat.foxconn.com*,script_path=https://raw.githubusercontent.com/Bengite/SomeThing/refs/heads/main/bwg/sgmodule/get_token.js,requires-body=false
